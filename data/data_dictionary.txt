@@ -1,0 +1,24 @@
+Data Dictionary for RP_SE282_RegrCoeffs and RP_SE282_SegProfileCoeffs
+
+Species Code:
+	FIA Eastern Species Codes
+	110 = Shortleaf pine
+	111 = Slash pine
+	121 = Longleaf Pine
+	131 = Loblolly Pine
+
+Bark: 
+	0 = inside bark
+	1 = outside bark
+	
+Region:
+	1 = Southwide
+	2 = Gulf and Atlantic Coastal Plain
+	3 = Piedmont
+	4 = Appalachian Mountains
+	5 = Upper Coastal Plain
+	6 = Deep South
+	7 = Arkansas Area
+	8 = Delta Area
+	
+
