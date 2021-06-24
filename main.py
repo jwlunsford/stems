@@ -1,25 +1,5 @@
-''' main.py:  connect to the database'''
-
 # imports
-from data.db import dal, RegCoeff, SegCoeff
-
-
-class StemProfileModel:
-    ''' represents an instance of a stem profile model'''
-
-    def __init__(self, region='deep south', spp='loblolly pine',
-                 dbh=14.0, height=80.0, bark=1):
-        self.region = region
-        self.spp = spp
-        self.dbh = dbh
-        self.height = height
-        self.bark = bark
-
-
-    def __repr__(self):
-        return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark})'
-
-
+from data.db import dal, RegCoeff, SegCoeff, StemProfileModel
 
 
 def calc_stem_dia(session, model):
@@ -40,20 +20,20 @@ def calc_stem_dia(session, model):
     '''
 
     # get the regression parameters
-    reg = get_regcoeff_params(session, model)
+    reg = lookup_reg_params(session, model)
 
     # get the segment parameters
-    seg = get_segcoeff_params(session, model)
+    seg = lookup_seg_params(session, model)
 
     # calculate diameter at 17.3 feet
-    dia17 = calc_dia_17(model, reg)
+    dia17 = calc_dia17(model, reg)
 
 
 
 
 
 
-def calc_dia_17(model, reg_params):
+def calc_dia17(model, reg_params):
     '''
     estimate stem diameter at 17.3 feet.  Uses Eq. 10 from Source [1]
 
@@ -77,10 +57,10 @@ def calc_dia_17(model, reg_params):
                               (17.3 / model.height) ** 2)
         return round(result, 2)
     except:
-        return 0.00
+        return 0.0
 
 
-def get_regcoeff_params(session, model):
+def lookup_reg_params(session, model):
     '''
     queries the database to retrieve the Regression Coefficients for
     the model.
@@ -116,7 +96,7 @@ def get_regcoeff_params(session, model):
         return output
 
 
-def get_segcoeff_params(session, model):
+def lookup_seg_params(session, model):
     '''
     queries the database to retrieve the Segment Coefficients for
     the model.
@@ -163,17 +143,17 @@ def get_segcoeff_params(session, model):
 
 def main():
     dal.connect()
-    dal.session = dal.Session()
+    session = dal.Session()
 
     spm = StemProfileModel()
-    params = get_regcoeff_params(dal.session, spm)
-    params2 = get_segcoeff_params(dal.session, spm)
+    params = lookup_reg_params(session, spm)
+    params2 = lookup_seg_params(session, spm)
     print(spm)
     print(params)
     print(params2)
-    print(calc_dia_17(spm, params))
+    print(calc_dia17(spm, params))
 
-    dal.session.close()
+    session.close()
 
 
 if __name__ == '__main__':

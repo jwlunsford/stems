@@ -1,11 +1,29 @@
+# imports
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy import Table, Column, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
-# module level database connection info
+
+
+class StemProfileModel:
+    ''' represents an instance of a stem profile model'''
+
+    def __init__(self, region='deep south', spp='loblolly pine',
+                 dbh=14.0, height=80.0, bark=1):
+        self.region = region
+        self.spp = spp
+        self.dbh = dbh
+        self.height = height
+        self.bark = bark
+
+
+    def __repr__(self):
+        return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark})'
+
 
 class DataAccessLayer:
+    ''' module level database connection info '''
 
     def __init__(self):
         self.conn_string = 'sqlite:///data/segprofile.db'
