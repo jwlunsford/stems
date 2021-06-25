@@ -5,23 +5,6 @@ from sqlalchemy import Table, Column, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 
-
-class StemProfileModel:
-    ''' represents an instance of a stem profile model'''
-
-    def __init__(self, region='deep south', spp='loblolly pine',
-                 dbh=14.0, height=80.0, bark=1):
-        self.region = region
-        self.spp = spp
-        self.dbh = dbh
-        self.height = height
-        self.bark = bark
-
-
-    def __repr__(self):
-        return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark})'
-
-
 class DataAccessLayer:
     ''' module level database connection info '''
 
@@ -46,16 +29,21 @@ class RegCoeff(Base):
     id = Column(Integer(), primary_key=True)
     region = Column(String(50), nullable=False)
     spp = Column(String(50), nullable=False)
-    reg_a = Column(Float(), nullable=False)
-    reg_b = Column(Float(), nullable=False)
     bark = Column(Integer(), nullable=False)
+    reg4_a = Column(Float(), nullable=False)
+    reg4_b = Column(Float(), nullable=False)
+    reg17_a = Column(Float(), nullable=False)
+    reg17_b = Column(Float(), nullable=False)
 
     # add repr to represent objects
     def __repr__(self):
         return f'''<RegCoeff(region='{self.region}',
         spp='{self.spp}',
-        reg_a={self.reg_a},
-        reg_b={self.reg_b})>'''
+        bark='{self.bark}',
+        reg4_a={self.reg4_a},
+        reg4_b={self.reg4_b},
+        reg17_a={self.reg17_a},
+        reg17_b={self.reg17_b})>'''
 
 
 class SegCoeff(Base):
