@@ -5,23 +5,13 @@ from sqlalchemy import Table, Column, Float, Integer, String
 from sqlalchemy.ext.declarative import declarative_base
 
 
-class DataAccessLayer:
-    ''' module level database connection info '''
-
-    def __init__(self):
-        self.conn_string = 'sqlite:///data/segprofile.db'
-
-    def connect(self):
-        self.engine = create_engine(self.conn_string)
-        self.Session = sessionmaker(bind=self.engine)
-
-    def close(self):
-        self.Session.close()
-
-
-dal = DataAccessLayer()
+engine = create_engine('sqlite:///data/segprofile.db')
+Session = sessionmaker(bind=engine)
 
 Base = declarative_base()
+
+
+# TODO:  Need code that will build the DB, create all tables and import the CSV # files in data/
 
 class RegCoeff(Base):
     __tablename__ = 'regcoeff'
