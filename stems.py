@@ -13,20 +13,6 @@ class StemProfileModel:
         self.height = height
         self.bark = bark
 
-        self._fetch_model_params()
-
-
-    def _fetch_model_params(self):
-        # create a session object to interact with the DB
-        session = Session()
-
-        # query the data and store the results in the model
-        self._fetch_reg_params(session)
-        self._fetch_seg_params(session)
-
-        # close the session
-        session.close()
-
 
     def __repr__(self):
         return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark}, reg_dict={self.reg_dict}, seg_dict={self.seg_dict})'
@@ -145,6 +131,20 @@ class StemProfileModel:
             self.seg_dict = None
 
 
+    def fetch_params(self, session):
+        '''
+        Fetch the stem-profile and regression parameters from the database
+
+        Parameters
+        ----------
+          session:  SQLAlchemy session instance
+        '''
+
+        # query the data and store the results in the model
+        self._fetch_reg_params(session)
+        self._fetch_seg_params(session)
+
+
     def estimate_stemDiameter(self, h=0):
         '''
         Estimates stem diameter for the height given.  Uses Eq. 1 from Source[1]
@@ -256,6 +256,74 @@ class StemProfileModel:
             print("Missing parameters:  Segmented-profile parameters are required before calling this function.")
 
 
+    def estimate_volume(self, L, U):
+        '''
+        Estimates stem volume (ft3) between two heights.  Uses Eq. 3 from
+        Source[1]
+
+        Parameters
+        ----------
+          L: integer, lower stem height in feet
+          U: integer, upper stem height in feet
+
+        Returns
+        -------
+          float, vol rounded to the nearest ft3
+
+        Source
+        -------
+        [1] Clark, A. III, et al. Stem Profile Equations for Southern Tree Speices
+        '''
+        # check that the model parameters have been stored before proceeding
+        if self.seg_dict:
+
+            # simplify variables for calcs later on, to mimic Source Eq 1.
+            r = self.seg_dict['butt_r']
+            c = self.seg_dict['butt_c']
+            e = self.seg_dict['butt_e']
+            p = self.seg_dict['lstem_p']
+            b = self.seg_dict['ustem_b']
+            a = self.seg_dict['ustem_a']
+            if self.bark == 1:  # inside bark
+                D = self._dbh_insideBark()
+            else:
+                D = self.dbh
+            H = self.height
+            F = self._dia_atGirard()
+
+            # set combined variables
+            G = (1 - 4.5 / H)**r
+            W = (c + e / D**3) / (1 - G)
+            X = (1 - 4.5 / H)**p
+            Y = (1 - 17.3 / H)**p
+            Z = (D**2 - F**2) / (X - Y)
+            T = D**2 - Z * X
+            L1 = max(L, 0)
+            U1 = min(U, 4.5)
+            L2 = max(L, 4.5)
+            U2 = min(U, 17.3)
+            L3 = max(L, 17.3)
+            U3 = min(U, H)
+
+            # set indicator variables
+            i1 = 1 if L < 4.5 else 0
+            i2 = 1 if L < 17.3 else 0
+            i3 = 1 if U > 4.5 else 0
+            i4 = 1 if U > 17.3 else 0
+            i5 = 1 if (L3 - 17.3) < a*(H - 17.3) else 0
+            i6 = 1 if (U3 - 17.3) < a*(H - 17.3) else 0
+
+            v1 = i1 * D**2 * ((1-G*W)*(U1-L1)+W*((1-L1/H)**r * (H-L1) - (1-U1/H)**r * (H-U1))/(r+1))
+            v2 = i2 * i3 * (T*(U2-L2)+Z*((1-L2/H)**p * (H-L2) - (1-U2/H)**p * (H-U2))/(p+1))
+            v3 = i4 * F**2 *(b*(U3-L3)-b*((U3-17.3)**2 - (L3-17.3)**2)/(H-17.3) + (b/3)*((U3-17.3)**3 - (L3-17.3)**3)/(H-17.3)**2 + (i5*(1/3)*((1-b)/a**2)*(a*(H-17.3)-(L3-17.3))**3/(H-17.3)**2 - i6*(1/3)*((1-b)/a**2)*(a*(H-17.3)-(U3-17.3))**3/(H-17.3)**2))
+
+            V = 0.005454154*(v1 + v2 + v3)
+
+            return round(V, 0)
+
+
+
+
 
 
 def main():
@@ -263,11 +331,15 @@ def main():
     # create a default model
     spm = StemProfileModel()
 
+    # fetch the model params from the database and store in the model
+    with Session() as session:
+        spm.fetch_params(session)
+
     # output
     print(spm)
-    print('diameter at 17.3 ft', spm._dia_atGirard())
-    print('diameter at h=50 ft', spm.estimate_stemDiameter(h=50))
-    print('height at 9.8"', spm.estimate_stemHeight(d=9.8))
+    print('Estimate Diameter at 50ft:', spm.estimate_stemDiameter(h=50), " inches")
+    print('Estimate Height at Diameter 9":', spm.estimate_stemHeight(d=9), " feet")
+    print('Estimate Volume between 1ft and 50 feet:', spm.estimate_volume(L=1, U=50))
 
 
 

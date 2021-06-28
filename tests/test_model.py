@@ -5,12 +5,16 @@ import pytest
 
 @pytest.fixture
 def model_default():
-    model = StemProfileModel()
+    with Session() as session:
+        model = StemProfileModel()
+        model.fetch_params(session)
     return model
 
 @pytest.fixture
 def model_outside():
-    model = StemProfileModel(bark=0)
+    with Session() as session:
+        model = StemProfileModel(bark=0)
+        model.fetch_params(session)
     return model
 
 
@@ -58,6 +62,8 @@ def test_stem_height_equals(model_default):
     # of the above test_stem_diameter_equals()
     d = model_default.estimate_stemHeight(d=9.8)
     assert d == 50.0
+
+# missing database lookup should return None for seg_dict and reg_dict
 
 
 
