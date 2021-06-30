@@ -17,6 +17,26 @@ def model_outside():
         model.fetch_params(session)
     return model
 
+@pytest.fixture
+def model_invalid_spp():
+    with Session() as session:
+        model = StemProfileModel(spp="Holly")
+        model.fetch_params(session)
+    return model
+
+@pytest.fixture
+def model_invalid_bark():
+    with Session() as session:
+        model = StemProfileModel(bark=3)
+        model.fetch_params(session)
+    return model
+
+@pytest.fixture
+def model_invalid_region():
+    with Session() as session:
+        model = StemProfileModel(region="West Coast")
+        model.fetch_params(session)
+    return model
 
 # tests
 def test_init_reg_params(model_default):
@@ -26,6 +46,10 @@ def test_init_reg_params(model_default):
 def test_init_seg_params(model_default):
     # check if seg parameters were fetched and stored correctly
     assert isinstance(model_default.seg_dict, dict)
+
+def test_init_wt_params(model_default):
+    # check if wt params were fetched and stored correctly
+    assert isinstance(model_default.wt_dict, dict)
 
 def test_stem_diameter_lt_dbh_using_default(model_default):
     # stem diameter at 5ft should be less than dbh
@@ -63,7 +87,25 @@ def test_stem_height_equals(model_default):
     d = model_default.estimate_stemHeight(d=9.8)
     assert d == 50.0
 
-# missing database lookup should return None for seg_dict and reg_dict
+def test_invalid_spp(model_invalid_spp):
+    # invalid spp parameter should return None for seg_dict, and reg_dict
+    assert model_invalid_spp.seg_dict == None
+    assert model_invalid_spp.reg_dict == None
+    assert model_invalid_spp.wt_dict != None
+
+def test_invalid_bark(model_invalid_bark):
+    # invalid bark parameter should return None for seg_dict and reg_dict
+    assert model_invalid_bark.seg_dict == None
+    assert model_invalid_bark.reg_dict == None
+    assert model_invalid_bark.wt_dict != None
+
+def test_invalid_region(model_invalid_region):
+    # invalid region parameter should return None for reg_dict
+    assert model_invalid_region.seg_dict != None
+    assert model_invalid_region.reg_dict == None
+    assert model_invalid_region.wt_dict != None
+
+
 
 
 

@@ -59,3 +59,21 @@ class SegCoeff(Base):
         lstem_p={self.lstem_p},
         ustem_b={self.ustem_b},
         ustem_a={self.ustem_a})'''
+
+
+class WtCoeff(Base):
+    __tablename__ = 'wtconv'
+
+    id = Column(Integer(), primary_key=True)
+    spp = Column(String(50), nullable=False)
+    spc_gravity = Column(Float(), nullable=False)
+    lbs_per_cuft = Column(Integer(), nullable=False)
+    tons_per_cuft = Column(Float(), nullable=False)
+
+    # add repr to represent objects
+    def __repr__(self):
+        return f'''WtCoeff(spp='{self.spp}',
+            spc_gravity={self.spc_gravity},
+            lbs_per_cuft={self.lbs_per_cuft},
+            tons_per_cuft={self.tons_per_cuft})'''
+
