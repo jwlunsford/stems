@@ -1,24 +1,36 @@
 Data Dictionary for RP_SE282_RegrCoeffs and RP_SE282_SegProfileCoeffs
 
-Species Code:
-	FIA Eastern Species Codes
-	110 = Shortleaf pine
-	111 = Slash pine
-	121 = Longleaf Pine
-	131 = Loblolly Pine
+When creating a StemProfileModel() the following parameter values are allowed.
+An asterik (*) denotes the default value if none is supplied.
 
-Bark: 
-	0 = inside bark
-	1 = outside bark
+region:
+	southwide
+	coastal plain
+	upper coastal plain
+	piedmont
+	(*) deep south
+
+spp: species
+	all pines combined
+	shortleaf pine
+	slash pine
+	longleaf pine
+	(*) loblolly pine
+	white pine
+	virginia pine
+	cherry
+	all hardwoods combined
+
+bark:
+	0 = outside bark
+	(*) 1 = inside bark
+
+dbh: diameter at breast height (4.5 ft above groundline)
+	any integer or decimal value is permitted
+
+height: total tree height to the tip in feet
+	any integer or decimal value is permitted
 	
-Region:
-	1 = Southwide
-	2 = Gulf and Atlantic Coastal Plain
-	3 = Piedmont
-	4 = Appalachian Mountains
-	5 = Upper Coastal Plain
-	6 = Deep South
-	7 = Arkansas Area
-	8 = Delta Area
+
 	
 
