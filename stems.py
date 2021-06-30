@@ -1,5 +1,5 @@
 # imports
-from data.db import Session, RegCoeff, SegCoeff
+from data.db import Session, RegCoeff, SegCoeff, WtCoeff
 
 
 class StemProfileModel:
@@ -15,7 +15,7 @@ class StemProfileModel:
 
 
     def __repr__(self):
-        return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark}, reg_dict={self.reg_dict}, seg_dict={self.seg_dict})'
+        return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark}, reg_dict={self.reg_dict}, seg_dict={self.seg_dict}, wt_dict={self.wt_dict})'
 
 
     def _dbh_insideBark(self):
@@ -71,7 +71,6 @@ class StemProfileModel:
 
         Parameters
         ----------
-        model: StemProfileModel instance
         session: SQLAlchemy DB session
 
         '''
@@ -94,7 +93,7 @@ class StemProfileModel:
             self.reg_dict = params
 
         except:
-            print("Error: Could not retrieve Regression Parameters for the model.")
+            print("Error: Could not retrieve Regression Parameters for the model. Check that you initialized the model with valid parameters (e.g.; region, spp, and bark)")
             self.reg_dict = None
 
 
@@ -105,7 +104,6 @@ class StemProfileModel:
 
         Parameters
         ----------
-        model: StemProfileModel instance
         session:  SQLAlchemy DB session
         '''
         try:
@@ -127,8 +125,38 @@ class StemProfileModel:
             self.seg_dict = params
 
         except:
-            print("Error: Could not retrieve Segmented-profile Parameters for the model.")
+            print("Error: Could not retrieve Segmented-profile Parameters for the model. Check that you initialized the model with valid parameters (e.g.; spp and bark)")
             self.seg_dict = None
+
+
+    def _fetch_wt_params(self, session):
+        '''
+        Queries the database to retrieve the Weight Conversion Params for
+        the model.
+
+        Parameters
+        ----------
+        session:  SQLAlchemy DB session
+        '''
+        try:
+            # dict to store output
+            params = {}
+
+            # query database
+            result = session.query(WtCoeff).filter(WtCoeff.spp == self.spp).first()
+
+            # this table has a short list of species, so if the result is None
+            # use the average tons per cubic feet for all speices listed (0.022)
+            if result:
+                params['tons_per_cuft'] = result.tons_per_cuft
+            else:
+                params['tons_per_cuft'] = 0.022
+
+            self.wt_dict = params
+
+        except:
+            print("Error: Could not retrieve Weight Conversion Parameters for the model.  Check that you initialized the model with valid parameters (e.g.; spp)")
+            self.wt_dict = None
 
 
     def fetch_params(self, session):
@@ -143,6 +171,7 @@ class StemProfileModel:
         # query the data and store the results in the model
         self._fetch_reg_params(session)
         self._fetch_seg_params(session)
+        self._fetch_wt_params(session)
 
 
     def estimate_stemDiameter(self, h=0):
@@ -318,8 +347,9 @@ class StemProfileModel:
             v3 = i4 * F**2 *(b*(U3-L3)-b*((U3-17.3)**2 - (L3-17.3)**2)/(H-17.3) + (b/3)*((U3-17.3)**3 - (L3-17.3)**3)/(H-17.3)**2 + (i5*(1/3)*((1-b)/a**2)*(a*(H-17.3)-(L3-17.3))**3/(H-17.3)**2 - i6*(1/3)*((1-b)/a**2)*(a*(H-17.3)-(U3-17.3))**3/(H-17.3)**2))
 
             V = 0.005454154*(v1 + v2 + v3)
+            tons_per_cuft = self.wt_dict['tons_per_cuft']
 
-            return round(V, 0)
+            return round(V * tons_per_cuft, 2)
 
 
 
@@ -328,18 +358,21 @@ class StemProfileModel:
 
 def main():
 
-    # create a default model
-    spm = StemProfileModel()
+    species = ['loblolly pine', 'shortleaf pine', 'longleaf pine']
 
     # fetch the model params from the database and store in the model
     with Session() as session:
-        spm.fetch_params(session)
+        # for each species
+        for s in species:
+            # create a default model of that species
+            spm = StemProfileModel(spp=s)
+            spm.fetch_params(session)
 
-    # output
-    print(spm)
-    print('Estimate Diameter at 50ft:', spm.estimate_stemDiameter(h=50), " inches")
-    print('Estimate Height at Diameter 9":', spm.estimate_stemHeight(d=9), " feet")
-    print('Estimate Volume between 1ft and 50 feet:', spm.estimate_volume(L=1, U=50))
+            # output
+            print(f'Estimate Top Diameter(i.b.) at 70ft for {s}: {spm.estimate_stemDiameter(h=70)} inches')
+            #print('Estimate Height at Diameter 9.8":', spm.estimate_stemHeight(d=9.8), " feet")
+            print(f'Estimate Volume between 1ft stump and 70ft for {s}: {spm.estimate_volume(L=1, U=70)} tons')
+            print('-' * 20)
 
 
 
