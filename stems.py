@@ -12,10 +12,14 @@ class StemProfileModel:
         self.dbh = dbh
         self.height = height
         self.bark = bark
+        self._params = False
 
 
     def __repr__(self):
-        return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark}, reg_dict={self.reg_dict}, seg_dict={self.seg_dict}, wt_dict={self.wt_dict})'
+        if self._params:
+            return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark}, reg_dict={self.reg_dict}, seg_dict={self.seg_dict}, wt_dict={self.wt_dict})'
+        else:
+            return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark})'
 
 
     def _dbh_insideBark(self):
@@ -169,9 +173,16 @@ class StemProfileModel:
         '''
 
         # query the data and store the results in the model
+
+        ### TRY/EXCEPT SETS PARAMS TO TRUE EVEN IF THE SESSION IS OF WRONG TYPE
+        ### CONFLICT WITH ERROR CHECKING IN EACH FUNCTION CALL
+
         self._fetch_reg_params(session)
         self._fetch_seg_params(session)
         self._fetch_wt_params(session)
+        self._params = True
+
+
 
 
     def estimate_stemDiameter(self, h=0):
@@ -279,13 +290,13 @@ class StemProfileModel:
             h2 = id_B * H * (1 - (X - (D**2 - d**2) / Z)**1 / p)
             h3 = id_T * (17.3 + (H - 17.3) * ((-Qb - (Qb**2 - 4 * Qa *Qc)**0.5)/(2*Qa)))
 
-            return round((h1 + h2 + h3), 0)
+            return round((h1 + h2 + h3), 2)
 
         else:
             print("Missing parameters:  Segmented-profile parameters are required before calling this function.")
 
 
-    def estimate_volume(self, L, U):
+    def estimate_volume(self, lower=1, upper=17):
         '''
         Estimates stem volume (ft3) between two heights.  Uses Eq. 3 from
         Source[1]
@@ -327,6 +338,8 @@ class StemProfileModel:
             Y = (1 - 17.3 / H)**p
             Z = (D**2 - F**2) / (X - Y)
             T = D**2 - Z * X
+            L = lower
+            U = upper
             L1 = max(L, 0)
             U1 = min(U, 4.5)
             L2 = max(L, 4.5)
@@ -365,13 +378,15 @@ def main():
         # for each species
         for s in species:
             # create a default model of that species
-            spm = StemProfileModel(spp=s)
+            spm = StemProfileModel(spp=s, dbh=20, height=100)
             spm.fetch_params(session)
 
             # output
-            print(f'Estimate Top Diameter(i.b.) at 70ft for {s}: {spm.estimate_stemDiameter(h=70)} inches')
-            #print('Estimate Height at Diameter 9.8":', spm.estimate_stemHeight(d=9.8), " feet")
-            print(f'Estimate Volume between 1ft stump and 70ft for {s}: {spm.estimate_volume(L=1, U=70)} tons')
+            h = spm.estimate_stemHeight(d=6)
+            d = spm.estimate_stemDiameter(h=80)
+            print(f'Height at 6": {h} feet')
+            print(f'Diameter at 80 feet: {d} inches')
+            print(f'Volume between 1ft and 66 feet {s}: {spm.estimate_volume(lower=1, upper=64)} tons')
             print('-' * 20)
 
 
