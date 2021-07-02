@@ -32,14 +32,10 @@ class StemProfileModel:
         Source
         -------
         [1] Clark, A. III, et al. Stem Profile Equations for Southern Tree Speices
+
         '''
-        if self.reg_dict:
-            result = self.reg_dict['reg4_a'] + self.reg_dict['reg4_b'] * self.dbh
-
-            return round(result, 2)
-
-        else:
-            print("Missing parameters:  Regression parameters are required before calling this function.")
+        result = self.reg_dict['reg4_a'] + self.reg_dict['reg4_b'] * self.dbh
+        return round(result, 2)
 
 
     def _dia_atGirard(self):
@@ -53,19 +49,11 @@ class StemProfileModel:
         Source
         -------
         [1] Clark, A. III, et al. Stem Profile Equations for Southern Tree Speices
+
         '''
-
-        # check that the model parameters have been stored before proceeding
-        if self.reg_dict:
-            # calculate diameter at 17.3ft
-            result = self.dbh * (self.reg_dict['reg17_a'] +
-                                  self.reg_dict['reg17_b'] *
-                                  (17.3 / self.height) ** 2)
-
-            return round(result, 2)
-
-        else:
-            print("Missing parameters:  Regression parameters are required before calling this function.")
+        # calculate diameter at 17.3ft
+        result = self.dbh * (self.reg_dict['reg17_a'] + self.reg_dict['reg17_b']        * (17.3 / self.height) ** 2)
+        return round(result, 2)
 
 
     def _fetch_reg_params(self, session):
@@ -181,8 +169,6 @@ class StemProfileModel:
         self._fetch_seg_params(session)
         self._fetch_wt_params(session)
         self._params = True
-
-
 
 
     def estimate_stemDiameter(self, h=0):
@@ -382,8 +368,8 @@ def main():
             spm.fetch_params(session)
 
             # output
-            h = spm.estimate_stemHeight(d=6)
-            d = spm.estimate_stemDiameter(h=80)
+            h = spm.estimate_stemHeight(d=9.8)
+            d = spm.estimate_stemDiameter(h=50)
             print(f'Height at 6": {h} feet')
             print(f'Diameter at 80 feet: {d} inches')
             print(f'Volume between 1ft and 66 feet {s}: {spm.estimate_volume(lower=1, upper=64)} tons')
