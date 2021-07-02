@@ -38,9 +38,9 @@ spm.estimate_volume(lower=1, upper=64)
 ```
 
 # ATTRIBUTION
-Created By: Jon W. Lunsford, Springwood Software
-Location: Nacogdoches, Texas
-Created On: June, 2021
+* Created By: Jon W. Lunsford, Springwood Software
+* Location: In the Blessed State of Texas
+* Created On: June, 2021
 
 # SOURCES
 [1] A. Clark III, R.A. Souter, and B.E. Schlaegel. (1991) ***Stem Profile Equations for Southern Tree Species*** Res. Pap. SE-282.  Ashville, NC: U.S. Department of Agriculture, Forest Service, Southeastern Forest Experiment Station.
