@@ -161,10 +161,6 @@ class StemProfileModel:
         '''
 
         # query the data and store the results in the model
-
-        ### TRY/EXCEPT SETS PARAMS TO TRUE EVEN IF THE SESSION IS OF WRONG TYPE
-        ### CONFLICT WITH ERROR CHECKING IN EACH FUNCTION CALL
-
         self._fetch_reg_params(session)
         self._fetch_seg_params(session)
         self._fetch_wt_params(session)
@@ -187,8 +183,7 @@ class StemProfileModel:
         -------
         [1] Clark, A. III, et al. Stem Profile Equations for Southern Tree Speices
         '''
-        # check that the model parameters have been stored before proceeding
-        if self.seg_dict:
+        try:
 
             # simplify variables for calcs later on, to mimic Source Eq 1.
             r = self.seg_dict['butt_r']
@@ -217,8 +212,8 @@ class StemProfileModel:
 
             return round((d1 + d2 + d3)**0.5, 2)
 
-        else:
-            print("Missing parameters:  Segmented-profile parameters are required before calling this function.")
+        except TypeError as e:
+            pass
 
 
     def estimate_stemHeight(self, d=0):
@@ -237,8 +232,7 @@ class StemProfileModel:
         -------
         [1] Clark, A. III, et al. Stem Profile Equations for Southern Tree Speices
         '''
-        # check that the model parameters have been stored before proceeding
-        if self.seg_dict:
+        try:
 
             # simplify variables for calcs later on, to mimic Source Eq 1.
             r = self.seg_dict['butt_r']
@@ -277,9 +271,8 @@ class StemProfileModel:
             h3 = id_T * (17.3 + (H - 17.3) * ((-Qb - (Qb**2 - 4 * Qa *Qc)**0.5)/(2*Qa)))
 
             return round((h1 + h2 + h3), 2)
-
-        else:
-            print("Missing parameters:  Segmented-profile parameters are required before calling this function.")
+        except TypeError as e:
+            pass
 
 
     def estimate_volume(self, lower=1, upper=17):
@@ -300,8 +293,7 @@ class StemProfileModel:
         -------
         [1] Clark, A. III, et al. Stem Profile Equations for Southern Tree Speices
         '''
-        # check that the model parameters have been stored before proceeding
-        if self.seg_dict:
+        try:
 
             # simplify variables for calcs later on, to mimic Source Eq 1.
             r = self.seg_dict['butt_r']
@@ -349,14 +341,14 @@ class StemProfileModel:
             tons_per_cuft = self.wt_dict['tons_per_cuft']
 
             return round(V * tons_per_cuft, 2)
-
-
-
+        except TypeError as e:
+            pass
 
 
 
 def main():
-
+    print('Example of how to use the model.')
+    print('Will use the ')
     species = ['loblolly pine', 'shortleaf pine', 'longleaf pine']
 
     # fetch the model params from the database and store in the model
