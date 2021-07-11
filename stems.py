@@ -86,7 +86,6 @@ class StemProfileModel:
 
         except:
             print("Error: Could not retrieve Regression Parameters for the model. Check that you initialized the model with valid parameters (e.g.; region, spp, and bark)")
-            self.reg_dict = None
 
 
     def _fetch_seg_params(self, session):
@@ -347,27 +346,34 @@ class StemProfileModel:
 
 
 def main():
-    print('Example of how to use the model.')
-    print('Will use the ')
-    species = ['loblolly pine', 'shortleaf pine', 'longleaf pine']
-
-    # fetch the model params from the database and store in the model
-    with Session() as session:
-        # for each species
-        for s in species:
-            # create a default model of that species
-            spm = StemProfileModel(spp=s, dbh=20, height=100)
-            spm.fetch_params(session)
-
-            # output
-            h = spm.estimate_stemHeight(d=9.8)
-            d = spm.estimate_stemDiameter(h=50)
-            print(f'Height at 6": {h} feet')
-            print(f'Diameter at 80 feet: {d} inches')
-            print(f'Volume between 1ft and 66 feet {s}: {spm.estimate_volume(lower=1, upper=64)} tons')
-            print('-' * 20)
-
-
+    print('Example of how to use Stems.')
+    print('-' * 30)
+    print('1. Create a Databse Session.')
+    print('\tsession = Session()')
+    print()
+    session = Session()
+    print('2. Create a StemProfileModel')
+    print('\tspm = StemProfileModel(spp="loblolly pine", dbh=20, height=90)')
+    spm = StemProfileModel(spp='loblolly pine', dbh=20, height=90)
+    print()
+    print('3. Fetch the Model Parameters.')
+    print('\tspm.fetch_params(session)')
+    spm.fetch_params(session)
+    print()
+    print('4. Close the session.')
+    print('\tsession.close()')
+    session.close()
+    print()
+    print('5. Estimate stem height at 6" in diameter.')
+    print('\th = spm.estimate_stemHeight(d=6)')
+    h = spm.estimate_stemHeight(d=6)
+    print(f'\tHeight where stem is 6 inches inside bark: {h} feet')
+    print()
+    print('6. Estimate stem diameter at 50 feet.')
+    print('\td = spm.estimate_stemDiameter(h=50)')
+    d = spm.estimate_stemDiameter(h=50)
+    print(f'\tStem diameter inside bark at 50 feet: {d} inches')
+    print()
 
 if __name__ == '__main__':
     main()
