@@ -1,8 +1,6 @@
 # imports
 from data.db import Session, RegCoeff, SegCoeff, WtCoeff
 
-session = Session()
-
 
 class StemProfileModel:
     ''' represents an instance of a stem profile model'''
@@ -348,34 +346,30 @@ class StemProfileModel:
 
 
 def main():
+    session = Session()
+
     print('Example of how to use Stems.')
     print('-' * 30)
-    print('1. Create a Databse Session.')
-    print('\tsession = Session()')
-    print()
-    # session = Session()
-    print('2. Create a StemProfileModel')
+    print('1. Create a StemProfileModel')
     print('\tspm = StemProfileModel(spp="loblolly pine", dbh=20, height=90)')
     spm = StemProfileModel(spp='loblolly pine', dbh=20, height=90)
     print()
-    print('3. Fetch the Model Parameters.')
+    print('2. Fetch the Model Parameters.')
     print('\tspm.fetch_params(session)')
     spm.fetch_params(session)
     print()
-    print('4. Close the session.')
-    print('\tsession.close()')
     session.close()
-    print()
-    print('5. Estimate stem height at 10" in diameter.')
-    print('\th = spm.estimate_stemHeight(d=10)')
-    h = spm.estimate_stemHeight(d=10)
+    print('3. Estimate stem height at 6" in diameter.')
+    print('\th = spm.estimate_stemHeight(d=6)')
+    h = spm.estimate_stemHeight(d=6)
     print(f'\tHeight where stem is 6 inches inside bark: {h} feet')
     print()
-    print('6. Estimate stem diameter at 50 feet.')
+    print('4. Estimate stem diameter at 50 feet.')
     print('\td = spm.estimate_stemDiameter(h=50)')
     d = spm.estimate_stemDiameter(h=50)
     print(f'\tStem diameter inside bark at 50 feet: {d} inches')
     print()
+
 
 if __name__ == '__main__':
     main()
