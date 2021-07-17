@@ -12,14 +12,11 @@ class StemProfileModel:
         self.dbh = dbh
         self.height = height
         self.bark = bark
-        self._params = False
+        self._params = {}
 
 
     def __repr__(self):
-        if self._params:
-            return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark}, reg_dict={self.reg_dict}, seg_dict={self.seg_dict}, wt_dict={self.wt_dict})'
-        else:
-            return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark})'
+        return f'< StemProfileModel(region="{self.region}", spp="{self.spp}", dbh={self.dbh}, height={self.height}, bark={self.bark})'
 
 
     def _dbh_insideBark(self):
@@ -34,7 +31,7 @@ class StemProfileModel:
         [1] Clark, A. III, et al. Stem Profile Equations for Southern Tree Speices
 
         '''
-        result = self.reg_dict['reg4_a'] + self.reg_dict['reg4_b'] * self.dbh
+        result = self._params['reg4_a'] + self._params['reg4_b'] * self.dbh
         return round(result, 2)
 
 
@@ -52,118 +49,56 @@ class StemProfileModel:
 
         '''
         # calculate diameter at 17.3ft
-        result = self.dbh * (self.reg_dict['reg17_a'] + self.reg_dict['reg17_b']        * (17.3 / self.height) ** 2)
+        result = self.dbh * (self._params['reg17_a'] + self._params['reg17_b']        * (17.3 / self.height) ** 2)
         return round(result, 2)
 
 
-    def _fetch_reg_params(self, session):
+    def init_params(self, session):
         '''
-        Queries the database to retrieve the Regression Coefficients for
-        the model.
-
-        Parameters
-        ----------
-        session: SQLAlchemy DB session
-
-        '''
-        try:
-            # dict to store output
-            params = {}
-
-            # query database
-            result = session.query(RegCoeff).filter(
-                        RegCoeff.region == self.region,
-                        RegCoeff.spp == self.spp,
-                        RegCoeff.bark == self.bark).first()
-
-            # add the output to the dict
-            params['reg4_a'] = result.reg4_a
-            params['reg4_b'] = result.reg4_b
-            params['reg17_a'] = result.reg17_a
-            params['reg17_b'] = result.reg17_b
-
-            self.reg_dict = params
-
-        except:
-            print("Error: Could not retrieve Regression Parameters for the model. Check that you initialized the model with valid parameters (e.g.; region, spp, and bark)")
-
-
-    def _fetch_seg_params(self, session):
-        '''
-        Queries the database to retrieve the Segment Coefficients for
-        the model.
-
-        Parameters
-        ----------
-        session:  SQLAlchemy DB session
-        '''
-        try:
-            # dict to store output
-            params = {}
-
-            # query database
-            result = session.query(SegCoeff).filter(SegCoeff.bark == self.bark,
-                                            SegCoeff.spp == self.spp).first()
-
-            # add the ouput to the dict
-            params['butt_r'] = result.butt_r
-            params['butt_c'] = result.butt_c
-            params['butt_e'] = result.butt_e
-            params['lstem_p'] = result.lstem_p
-            params['ustem_b'] = result.ustem_b
-            params['ustem_a'] = result.ustem_a
-
-            self.seg_dict = params
-
-        except:
-            print("Error: Could not retrieve Segmented-profile Parameters for the model. Check that you initialized the model with valid parameters (e.g.; spp and bark)")
-            self.seg_dict = None
-
-
-    def _fetch_wt_params(self, session):
-        '''
-        Queries the database to retrieve the Weight Conversion Params for
-        the model.
-
-        Parameters
-        ----------
-        session:  SQLAlchemy DB session
-        '''
-        try:
-            # dict to store output
-            params = {}
-
-            # query database
-            result = session.query(WtCoeff).filter(WtCoeff.spp == self.spp).first()
-
-            # this table has a short list of species, so if the result is None
-            # use the average tons per cubic feet for all speices listed (0.022)
-            if result:
-                params['tons_per_cuft'] = result.tons_per_cuft
-            else:
-                params['tons_per_cuft'] = 0.022
-
-            self.wt_dict = params
-
-        except:
-            print("Error: Could not retrieve Weight Conversion Parameters for the model.  Check that you initialized the model with valid parameters (e.g.; spp)")
-            self.wt_dict = None
-
-
-    def fetch_params(self, session):
-        '''
-        Fetch the stem-profile and regression parameters from the database
+        Get the stem-profile, regression and weight parameters from
+        the database.  Stores values in self._params dict
 
         Parameters
         ----------
           session:  SQLAlchemy session instance
         '''
+        try:
 
-        # query the data and store the results in the model
-        self._fetch_reg_params(session)
-        self._fetch_seg_params(session)
-        self._fetch_wt_params(session)
-        self._params = True
+            # Get the Regression parameters from the database
+            reg_result = session.query(RegCoeff).filter(
+                        RegCoeff.region == self.region,
+                        RegCoeff.spp == self.spp,
+                        RegCoeff.bark == self.bark).first()
+
+            # add the output to the dict
+            self._params['reg4_a'] = reg_result.reg4_a
+            self._params['reg4_b'] = reg_result.reg4_b
+            self._params['reg17_a'] = reg_result.reg17_a
+            self._params['reg17_b'] = reg_result.reg17_b
+
+            # Get the Segmentation parameters from the database
+            seg_result = session.query(SegCoeff).filter(SegCoeff.bark == self.bark, SegCoeff.spp == self.spp).first()
+
+            # add the ouput to the dict
+            self._params['butt_r'] = seg_result.butt_r
+            self._params['butt_c'] = seg_result.butt_c
+            self._params['butt_e'] = seg_result.butt_e
+            self._params['lstem_p'] = seg_result.lstem_p
+            self._params['ustem_b'] = seg_result.ustem_b
+            self._params['ustem_a'] = seg_result.ustem_a
+
+            # query database
+            wt_result = session.query(WtCoeff).filter(WtCoeff.spp == self.spp).first()
+
+            # this table has a short list of species, so if the result is None
+            # use the average tons per cubic feet for all speices listed (0.022)
+            if wt_result:
+                self._params['tons_per_cuft'] = wt_result.tons_per_cuft
+            else:
+                self._params['tons_per_cuft'] = 0.022
+
+        except:
+            print("Error: Could not retrieve model Parameters. Check that you initialized the model with valid parameters (e.g.; region, spp, and bark)")
 
 
     def estimate_stemDiameter(self, h=0):
@@ -185,12 +120,12 @@ class StemProfileModel:
         try:
 
             # simplify variables for calcs later on, to mimic Source Eq 1.
-            r = self.seg_dict['butt_r']
-            c = self.seg_dict['butt_c']
-            e = self.seg_dict['butt_e']
-            p = self.seg_dict['lstem_p']
-            b = self.seg_dict['ustem_b']
-            a = self.seg_dict['ustem_a']
+            r = self._params['butt_r']
+            c = self._params['butt_c']
+            e = self._params['butt_e']
+            p = self._params['lstem_p']
+            b = self._params['ustem_b']
+            a = self._params['ustem_a']
             if self.bark == 1:  # inside bark
                 D = self._dbh_insideBark()
             else:
@@ -234,12 +169,12 @@ class StemProfileModel:
         try:
 
             # simplify variables for calcs later on, to mimic Source Eq 1.
-            r = self.seg_dict['butt_r']
-            c = self.seg_dict['butt_c']
-            e = self.seg_dict['butt_e']
-            p = self.seg_dict['lstem_p']
-            b = self.seg_dict['ustem_b']
-            a = self.seg_dict['ustem_a']
+            r = self._params['butt_r']
+            c = self._params['butt_c']
+            e = self._params['butt_e']
+            p = self._params['lstem_p']
+            b = self._params['ustem_b']
+            a = self._params['ustem_a']
             if self.bark == 1:  # inside bark
                 D = self._dbh_insideBark()
             else:
@@ -295,12 +230,12 @@ class StemProfileModel:
         try:
 
             # simplify variables for calcs later on, to mimic Source Eq 1.
-            r = self.seg_dict['butt_r']
-            c = self.seg_dict['butt_c']
-            e = self.seg_dict['butt_e']
-            p = self.seg_dict['lstem_p']
-            b = self.seg_dict['ustem_b']
-            a = self.seg_dict['ustem_a']
+            r = self._params['butt_r']
+            c = self._params['butt_c']
+            e = self._params['butt_e']
+            p = self._params['lstem_p']
+            b = self._params['ustem_b']
+            a = self._params['ustem_a']
             if self.bark == 1:  # inside bark
                 D = self._dbh_insideBark()
             else:
@@ -337,7 +272,7 @@ class StemProfileModel:
             v3 = i4 * F**2 *(b*(U3-L3)-b*((U3-17.3)**2 - (L3-17.3)**2)/(H-17.3) + (b/3)*((U3-17.3)**3 - (L3-17.3)**3)/(H-17.3)**2 + (i5*(1/3)*((1-b)/a**2)*(a*(H-17.3)-(L3-17.3))**3/(H-17.3)**2 - i6*(1/3)*((1-b)/a**2)*(a*(H-17.3)-(U3-17.3))**3/(H-17.3)**2))
 
             V = 0.005454154*(v1 + v2 + v3)
-            tons_per_cuft = self.wt_dict['tons_per_cuft']
+            tons_per_cuft = self._params['tons_per_cuft']
 
             return round(V * tons_per_cuft, 2)
         except TypeError as e:
@@ -354,9 +289,9 @@ def main():
     print('\tspm = StemProfileModel(spp="loblolly pine", dbh=20, height=90)')
     spm = StemProfileModel(spp='loblolly pine', dbh=20, height=90)
     print()
-    print('2. Fetch the Model Parameters.')
-    print('\tspm.fetch_params(session)')
-    spm.fetch_params(session)
+    print('2. Initialize the Model Parameters.')
+    print('\tspm.init_params(session)')
+    spm.init_params(session)
     print()
     session.close()
     print('3. Estimate stem height at 6" in diameter.')
