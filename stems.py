@@ -1,6 +1,8 @@
 # imports
 from data.db import Session, RegCoeff, SegCoeff, WtCoeff
 
+session = Session()
+
 
 class StemProfileModel:
     ''' represents an instance of a stem profile model'''
@@ -351,7 +353,7 @@ def main():
     print('1. Create a Databse Session.')
     print('\tsession = Session()')
     print()
-    session = Session()
+    # session = Session()
     print('2. Create a StemProfileModel')
     print('\tspm = StemProfileModel(spp="loblolly pine", dbh=20, height=90)')
     spm = StemProfileModel(spp='loblolly pine', dbh=20, height=90)
@@ -364,9 +366,9 @@ def main():
     print('\tsession.close()')
     session.close()
     print()
-    print('5. Estimate stem height at 6" in diameter.')
-    print('\th = spm.estimate_stemHeight(d=6)')
-    h = spm.estimate_stemHeight(d=6)
+    print('5. Estimate stem height at 10" in diameter.')
+    print('\th = spm.estimate_stemHeight(d=10)')
+    h = spm.estimate_stemHeight(d=10)
     print(f'\tHeight where stem is 6 inches inside bark: {h} feet')
     print()
     print('6. Estimate stem diameter at 50 feet.')
