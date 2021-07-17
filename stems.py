@@ -31,8 +31,11 @@ class StemProfileModel:
         [1] Clark, A. III, et al. Stem Profile Equations for Southern Tree Speices
 
         '''
-        result = self._params['reg4_a'] + self._params['reg4_b'] * self.dbh
-        return round(result, 2)
+        try:
+            result = self._params['reg4_a'] + self._params['reg4_b'] * self.dbh
+            return round(result, 2)
+        except (TypeError, KeyError):
+            print("Error: Invalid parameter. Diameter inside bark at DBH may be incorrect.")
 
 
     def _dia_atGirard(self):
@@ -49,8 +52,11 @@ class StemProfileModel:
 
         '''
         # calculate diameter at 17.3ft
-        result = self.dbh * (self._params['reg17_a'] + self._params['reg17_b']        * (17.3 / self.height) ** 2)
-        return round(result, 2)
+        try:
+            result = self.dbh * (self._params['reg17_a'] + self._params['reg17_b']        * (17.3 / self.height) ** 2)
+            return round(result, 2)
+        except (TypeError, KeyError):
+            print("Error: Invalid parameter. Stem diameter at 17.3 feet may be incorrect.")
 
 
     def init_params(self, session):
@@ -97,8 +103,9 @@ class StemProfileModel:
             else:
                 self._params['tons_per_cuft'] = 0.022
 
-        except:
-            print("Error: Could not retrieve model Parameters. Check that you initialized the model with valid parameters (e.g.; region, spp, and bark)")
+        except (AttributeError, KeyError):
+            print("Error: Invalid parameter. Possibly due to a bad 'species', 'region', or 'bark' input parameter!")
+
 
 
     def estimate_stemDiameter(self, h=0):
@@ -146,8 +153,8 @@ class StemProfileModel:
 
             return round((d1 + d2 + d3)**0.5, 2)
 
-        except TypeError as e:
-            pass
+        except KeyError:
+            print("Error: Invalid parameter. Possibly due to a bad 'species', 'region', or 'bark' input parameter!")
 
 
     def estimate_stemHeight(self, d=0):
@@ -205,8 +212,9 @@ class StemProfileModel:
             h3 = id_T * (17.3 + (H - 17.3) * ((-Qb - (Qb**2 - 4 * Qa *Qc)**0.5)/(2*Qa)))
 
             return round((h1 + h2 + h3), 2)
-        except TypeError as e:
-            pass
+
+        except KeyError:
+            print("Error: Invalid parameter. Possibly due to a bad 'species', 'region', or 'bark' input parameter!")
 
 
     def estimate_volume(self, lower=1, upper=17):
@@ -275,9 +283,9 @@ class StemProfileModel:
             tons_per_cuft = self._params['tons_per_cuft']
 
             return round(V * tons_per_cuft, 2)
-        except TypeError as e:
-            pass
 
+        except AttributeError:
+            print("Error: Invalid parameter. Possibly due to a bad 'species', 'region', or 'bark' input parameter!")
 
 
 def main():
