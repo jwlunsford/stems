@@ -41,6 +41,7 @@ spm.estimate_volume(lower=1, upper=64)
 * Created By: Jon W. Lunsford, Springwood Software
 * Location: Nacogdoches, Texas
 * Created: July, 2021
+* License: MIT
 
 # SOURCES
 A. Clark III, R.A. Souter, and B.E. Schlaegel. (1991) ***Stem Profile Equations for Southern Tree Species*** Res. Pap. SE-282.  Ashville, NC: U.S. Department of Agriculture, Forest Service, Southeastern Forest Experiment Station.
