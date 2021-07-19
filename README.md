@@ -24,8 +24,8 @@ import stems as stm
 
 # create a session instance, a model instance and retrieve the model parameters
 with stm.Session() as session:
-    spm = stm.StemProfileModel(spp='shortleaf pine', dbh=18, height=95)
-    spm.fetch_params(session)
+    spm = stm.StemProfileModel(spp='shortleaf pine', dbh=14, height=95)
+    spm.init_params(session)
 
 # calcuate height to a given diameter, d=6
 spm.estimate_stemHeight(d=6)
